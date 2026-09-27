@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Timer - Focus • Study • Grow</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Quicksand -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        /* Gingham Pattern Background */
+        body {
+            background-color: #fce7f0;
+            background-image: 
+                linear-gradient(90deg, rgba(255, 182, 193, 0.35) 50%, transparent 50%),
+                linear-gradient(rgba(255, 182, 193, 0.35) 50%, transparent 50%);
+            background-size: 40px 40px;
+        }
+
+        /* Custom Soft Shadow */
+        .card-shadow {
+            box-shadow: 0 12px 35px -5px rgba(230, 150, 170, 0.25), 
+                        0 4px 15px -2px rgba(230, 150, 170, 0.15);
+        }
+
+        .inner-glow {
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.8), 
+                        0 4px 12px rgba(255, 182, 193, 0.15);
+        }
+
+        /* Pulse Animation for Active Timer */
+        @keyframes subtle-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+        }
+        .timer-running {
+            animation: subtle-pulse 2s infinite ease-in-out;
+        }
+
+        /* Custom Select styling */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6 text-[#5a484c]">
+
+    <!-- Main App Card -->
+    <main class="w-full max-w-md bg-white/95 backdrop-blur-sm rounded-[32px] p-6 sm:p-8 card-shadow border border-pink-100 flex flex-col items-center relative overflow-hidden my-auto">
+        
+        <!-- Top Decorative Corner Badges -->
+        <div class="absolute -top-12 -right-12 w-28 h-28 bg-pink-100/60 rounded-full blur-xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-28 h-28 bg-pink-100/60 rounded-full blur-xl pointer-events-none"></div>
+
+        <!-- Top Header Icon -->
+        <div class="text-[#f07898] mb-1 hover:scale-110 transition-transform duration-300">
+            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2,21V19H20V21H2M20,8V5H18V8H20M20,3A2,2 0 0,1 22,5V8A2,2 0 0,1 20,10H18V13A4,4 0 0,1 14,17H8A4,4 0 0,1 4,13V3H20M16,5H6V13A2,2 0 0,0 8,15H14A2,2 0 0,0 16,13V5Z"/>
+                <path d="M12,11.5 C12,11.5 10,9.5 10,8.5 C10,7.5 11,7 12,8 C13,7 14,7.5 14,8.5 C14,9.5 12,11.5 12,11.5 Z" fill="#ffb6c1"/>
+            </svg>
+        </div>
+
+        <!-- Title Header -->
+        <div class="text-center mb-5">
+            <div class="flex items-center justify-center gap-2">
+                <span class="text-pink-400 text-xs">♥</span>
+                <h1 class="text-3xl font-bold tracking-tight text-[#4a3b3a]">Study Timer</h1>
+                <span class="text-pink-400 text-xs">♥</span>
+            </div>
+            <p class="text-xs font-semibold tracking-wider text-pink-400 uppercase mt-0.5">Focus • Study • Grow</p>
+        </div>
+
+        <!-- Mode Switcher Pill -->
+        <div class="bg-pink-50/80 p-1.5 rounded-full flex gap-1 w-full max-w-[280px] mb-6 border border-pink-100">
+            <button id="studyTab" onclick="switchMode('study')" class="flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 bg-white text-[#f07898] shadow-sm">
+                <i class="fa-solid font-normal fa-book-open"></i> Study
+            </button>
+            <button id="breakTab" onclick="switchMode('break')" class="flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 text-pink-400 hover:text-pink-500">
+                <i class="fa-solid fa-mug-hot"></i> Break
+            </button>
+        </div>
+
+        <!-- Timer Clock Display Card -->
+        <div class="relative w-full mb-6">
+            <div id="timerContainer" class="bg-[#fff0f4] rounded-[40px] py-8 px-6 text-center border border-pink-100/80 transition-all duration-300 flex items-center justify-center relative">
+                
+                <!-- Flanking Decorative Accents -->
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 opacity-70">
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-300"></span>
+                    <span class="w-1.5 h-3 rounded-full bg-pink-300"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-300"></span>
+                    <span class="text-pink-400 text-xs mt-1">♥</span>
+                </div>
+
+                <!-- Clock Text -->
+                <span id="timerDisplay" class="text-5xl sm:text-6xl font-extrabold tracking-tight text-[#2d2325] select-none">25:00</span>
+
+                <!-- Right Flanking Decorative Accents -->
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 opacity-70">
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-300"></span>
+                    <span class="w-1.5 h-3 rounded-full bg-pink-300"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-300"></span>
+                    <span class="text-pink-400 text-xs mt-1">♥</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Action Buttons -->
+        <div class="flex items-center justify-center gap-3 sm:gap-4 mb-8 w-full">
+            <!-- Skip Button -->
+            <button onclick="skipTimer()" class="group flex flex-col items-center gap-1 text-pink-400 hover:text-pink-600 transition-colors">
+                <div class="w-11 h-11 rounded-full bg-pink-50 group-hover:bg-pink-100 flex items-center justify-center transition-all duration-200 active:scale-95">
+                    <i class="fa-solid fa-backward-step text-sm"></i>
+                </div>
+                <span class="text-[11px] font-bold tracking-wide">Skip</span>
+            </button>
+
+            <!-- Pause Button -->
+            <button onclick="pauseTimer()" class="group flex flex-col items-center gap-1 text-pink-400 hover:text-pink-600 transition-colors">
+                <div class="w-11 h-11 rounded-full bg-pink-50 group-hover:bg-pink-100 flex items-center justify-center transition-all duration-200 active:scale-95">
+                    <i class="fa-solid fa-pause text-sm"></i>
+                </div>
+                <span class="text-[11px] font-bold tracking-wide">Pause</span>
+            </button>
+
+            <!-- Primary Play/Start Button -->
+            <button id="startBtn" onclick="toggleTimer()" class="group flex flex-col items-center gap-1 text-[#f07898]">
+                <div class="w-16 h-16 rounded-full bg-[#f07898] hover:bg-[#e66888] text-white flex items-center justify-center shadow-lg shadow-pink-200/80 transition-all duration-200 active:scale-95">
+                    <i id="startIcon" class="fa-solid fa-play text-xl ml-0.5"></i>
+                </div>
+                <span id="startText" class="text-xs font-bold tracking-wide text-[#f07898]">Start</span>
+            </button>
+
+            <!-- Reset Button -->
+            <button onclick="resetTimer()" class="group flex flex-col items-center gap-1 text-pink-400 hover:text-pink-600 transition-colors">
+                <div class="w-11 h-11 rounded-full bg-pink-50 group-hover:bg-pink-100 flex items-center justify-center transition-all duration-200 active:scale-95">
+                    <i class="fa-solid fa-rotate-right text-sm"></i>
+                </div>
+                <span class="text-[11px] font-bold tracking-wide">Reset</span>
+            </button>
+        </div>
+
+        <!-- Customization Selectors Row -->
+        <div class="grid grid-cols-2 gap-3 w-full mb-6">
+            <!-- Study Time Selector Card -->
+            <div class="bg-[#fff5f8] p-3 rounded-2xl border border-pink-100/60 flex items-center gap-3 relative">
+                <div class="text-[#f07898] text-lg pl-1">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <label class="block text-[10px] font-bold text-pink-400 uppercase tracking-wider mb-0.5">Study Time</label>
+                    <select id="studyDuration" onchange="updateDurationSetting()" class="bg-transparent text-sm font-extrabold text-[#3a2d30] w-full focus:outline-none cursor-pointer pr-4">
+                        <option value="15">15 min</option>
+                        <option value="25" selected>25 min</option>
+                        <option value="35">35 min</option>
+                        <option value="45">45 min</option>
+                        <option value="50">50 min</option>
+                        <option value="60">60 min</option>
+                    </select>
+                </div>
+                <i class="fa-solid fa-chevron-down text-xs text-pink-300 absolute right-3 pointer-events-none"></i>
+            </div>
+
+            <!-- Break Time Selector Card -->
+            <div class="bg-[#fff5f8] p-3 rounded-2xl border border-pink-100/60 flex items-center gap-3 relative">
+                <div class="text-[#f07898] text-lg pl-1">
+                    <i class="fa-solid fa-mug-hot"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <label class="block text-[10px] font-bold text-pink-400 uppercase tracking-wider mb-0.5">Break Time</label>
+                    <select id="breakDuration" onchange="updateDurationSetting()" class="bg-transparent text-sm font-extrabold text-[#3a2d30] w-full focus:outline-none cursor-pointer pr-4">
+                        <option value="3">3 min</option>
+                        <option value="5" selected>5 min</option>
+                        <option value="10">10 min</option>
+                        <option value="15">15 min</option>
+                        <option value="20">20 min</option>
+                    </select>
+                </div>
+                <i class="fa-solid fa-chevron-down text-xs text-pink-300 absolute right-3 pointer-events-none"></i>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="w-full h-px bg-pink-100/70 mb-5"></div>
+
+        <!-- Session Counter & Motivational Footer -->
+        <div class="flex flex-col items-center gap-2">
+            <div class="flex items-center gap-2 text-xs font-bold text-pink-400">
+                <i class="fa-solid fa-rotate text-pink-300"></i>
+                <span>Sessions Today</span>
+                <span id="sessionCount" class="bg-pink-100 text-[#f07898] px-2 py-0.5 rounded-full text-xs font-extrabold">0</span>
+            </div>
+            <div class="text-xs font-bold text-pink-300 flex items-center gap-1.5 mt-1">
+                <span>♥</span>
+                <span id="mottoText">You got this!</span>
+                <span>♥</span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // State Variables
+        let currentMode = 'study'; // 'study' or 'break'
+        let timerInterval = null;
+        let isRunning = false;
+        let completedSessions = 0;
+
+        // Custom Motivations
+        const motives = [
+            "You got this!",
+            "Small steps, big dreams!",
+            "Stay focused & shine!",
+            "One step at a time!",
+            "Believe in yourself!"
+        ];
+
+        // Default times (in seconds)
+        let timeRemaining = 25 * 60;
+
+        // DOM Elements
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerContainer = document.getElementById('timerContainer');
+        const startIcon = document.getElementById('startIcon');
+        const startText = document.getElementById('startText');
+        const studyTab = document.getElementById('studyTab');
+        const breakTab = document.getElementById('breakTab');
+        const studyDuration = document.getElementById('studyDuration');
+        const breakDuration = document.getElementById('breakDuration');
+        const sessionCountDisplay = document.getElementById('sessionCount');
+        const mottoText = document.getElementById('mottoText');
+
+        // Play subtle sound using Web Audio API (no external asset dependencies)
+        function playChime() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const now = audioCtx.currentTime;
+                
+                // Note 1
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(523.25, now); // C5
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+                osc1.start(now);
+                osc1.stop(now + 1.2);
+
+                // Note 2
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(659.25, now + 0.2); // E5
+                gain2.gain.setValueAtTime(0.3, now + 0.2);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.start(now + 0.2);
+                osc2.stop(now + 1.4);
+            } catch (e) {
+                console.log("Audio play blocked or unsupported");
+            }
+        }
+
+        // Format Seconds to MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Update UI Clock Display
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(timeRemaining);
+            document.title = `(${formatTime(timeRemaining)}) Study Timer`;
+        }
+
+        // Toggle Timer Start / Pause
+        function toggleTimer() {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            
+            startIcon.className = "fa-solid fa-pause text-xl";
+            startText.textContent = "Pause";
+            timerContainer.classList.add('timer-running');
+
+            timerInterval = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    updateDisplay();
+                } else {
+                    handleTimerCompletion();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (!isRunning) return;
+            isRunning = false;
+            clearInterval(timerInterval);
+            
+            startIcon.className = "fa-solid fa-play text-xl ml-0.5";
+            startText.textContent = "Start";
+            timerContainer.classList.remove('timer-running');
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            const minutes = currentMode === 'study' ? parseInt(studyDuration.value) : parseInt(breakDuration.value);
+            timeRemaining = minutes * 60;
+            updateDisplay();
+        }
+
+        function skipTimer() {
+            pauseTimer();
+            switchMode(currentMode === 'study' ? 'break' : 'study');
+        }
+
+        // Handle Mode Switching (Study vs Break)
+        function switchMode(mode) {
+            pauseTimer();
+            currentMode = mode;
+
+            if (mode === 'study') {
+                studyTab.className = "flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 bg-white text-[#f07898] shadow-sm";
+                breakTab.className = "flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 text-pink-400 hover:text-pink-500";
+                timeRemaining = parseInt(studyDuration.value) * 60;
+            } else {
+                breakTab.className = "flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 bg-white text-[#f07898] shadow-sm";
+                studyTab.className = "flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 text-pink-400 hover:text-pink-500";
+                timeRemaining = parseInt(breakDuration.value) * 60;
+            }
+
+            updateDisplay();
+        }
+
+        // Duration setting changes from dropdowns
+        function updateDurationSetting() {
+            if (!isRunning) {
+                resetTimer();
+            }
+        }
+
+        // Completion logic
+        function handleTimerCompletion() {
+            pauseTimer();
+            playChime();
+
+            if (currentMode === 'study') {
+                completedSessions++;
+                sessionCountDisplay.textContent = completedSessions;
+                
+                // Pick random motto on completion
+                const randomMotto = motives[Math.floor(Math.random() * motives.length)];
+                mottoText.textContent = randomMotto;
+
+                // Auto switch to break
+                setTimeout(() => {
+                    switchMode('break');
+                }, 1000);
+            } else {
+                // Auto switch back to study
+                setTimeout(() => {
+                    switchMode('study');
+                }, 1000);
+            }
+        }
+
+        // Initial setup
+        updateDisplay();
+    </script>
+</body>
+</html>
